@@ -1,22 +1,15 @@
-<?php
-include "db/config.php";
+<?php include "partials/header.php"; ?>
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
+<div class="text-center mt-5">
+    <h1>Welcome to Expense Tracker</h1>
+    <p class="lead">Manage your finances efficiently and clearly.</p>
+    
+    <div class="mt-4">
+        <a href="register.php" class="btn btn-success btn-lg me-2">Get Started</a>
+        <a href="login.php" class="btn btn-outline-primary btn-lg">Login</a>
+    </div>
+</div>
 
-    // FIX: Use pg_query() instead of $conn->query()
-    // Also ensuring column names match the ones we created (username vs name)
-    $sql = "INSERT INTO users (username, email, password_hash) VALUES ('$name', '$email', '$pass')";
-    $result = pg_query($conn, $sql);
-
-    if ($result) {
-        header("Location: login.php");
-        exit(); // Always exit after a header redirect
-    } else {
-        echo "Error: " . pg_last_error($conn);
-    }
-}
-include "partials/header.php";
-?>
+</div> <!-- End container -->
+</body>
+</html>
