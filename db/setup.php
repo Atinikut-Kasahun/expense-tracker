@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 pg_query($conn, $sql);
 
-// 2. Create Expenses Table
+
 $sql_expenses = "
 CREATE TABLE IF NOT EXISTS expenses (
     id SERIAL PRIMARY KEY,
@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 pg_query($conn, $sql_expenses);
 
-// 3. SECURE FIX: If table existed without 'type', 'category', or 'date', add them now
 $columns_to_check = [
     'type' => "ALTER TABLE expenses ADD COLUMN type VARCHAR(10) DEFAULT 'expense' NOT NULL",
     'category' => "ALTER TABLE expenses ADD COLUMN category VARCHAR(50)",
@@ -49,7 +48,7 @@ foreach ($columns_to_check as $col => $alter_sql) {
     }
 }
 
-// Ensure type has constraints if added earlier without them
+
 $check_constraint = "ALTER TABLE expenses DROP CONSTRAINT IF EXISTS expenses_type_check; ALTER TABLE expenses ADD CONSTRAINT expenses_type_check CHECK (type IN ('income', 'expense'))";
 pg_query($conn, $check_constraint);
 
