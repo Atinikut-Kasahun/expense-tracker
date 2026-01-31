@@ -1,8 +1,8 @@
 <?php
 $host = "localhost";
 $port = "5432"; // Default PostgreSQL port
-$user = "postgres"; // Change 'root' to 'postgres'
-$pass = "your_new_password"; // The password you set in the query tool
+$user = "postgres";
+$pass = "your_new_password"; // <--- IMPORTANT: REPLACE THIS with your actual postgres password!
 $db = "expense_tracker";
 
 // Connect to PostgreSQL
@@ -12,5 +12,6 @@ if (!$conn) {
     die("PostgreSQL Connection Failed: " . pg_last_error());
 }
 
-session_start();
-?>
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
