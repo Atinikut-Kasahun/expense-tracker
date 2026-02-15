@@ -9,6 +9,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validate_csrf_token($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')) {
+        echo json_encode(['error' => 'CSRF token mismatch']);
+        exit;
+    }
     $user_id = $_SESSION['user_id'];
     $id = (int) ($_POST['id'] ?? 0);
 

@@ -11,6 +11,10 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validate_csrf_token($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '')) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token mismatch']);
+        exit;
+    }
     $user_id = $_SESSION['user_id'];
     $title = trim($_POST['title'] ?? '');
     $amount = filter_var($_POST['amount'] ?? 0, FILTER_VALIDATE_FLOAT);
