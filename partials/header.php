@@ -4,30 +4,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Tracker</title>
+    <title>Xpense | Smart Finance Tracker</title>
+    <meta name="csrf-token" content="<?php echo generate_csrf_token(); ?>">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <!-- Custom CSS -->
-    <link href="assets/css/style.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: rgba(51, 65, 85, 0.8);
+        }
+    </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">Expense Tracker</a>
-            <div class="navbar-nav ms-auto">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+    <nav class="sticky top-0 z-50 w-full glass border-b border-slate-200 dark:border-slate-800 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.php" class="flex items-center gap-2 group">
+                <div class="bg-primary p-2 rounded-lg text-white group-hover:scale-110 transition">
+                    <i class="bi bi-intersect"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">Xpense</span>
+            </a>
+
+            <div class="flex items-center gap-6">
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a class="nav-link" href="dashboard.php">Dashboard</a>
-                    <a class="nav-link" href="logout.php">Logout</a>
+                    <a href="dashboard.php" class="text-sm font-medium hover:text-primary transition">Dashboard</a>
+                    <a href="logout.php"
+                        class="bg-slate-100 hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-rose-900/30 px-4 py-2 rounded-full text-sm font-semibold transition">
+                        Logout
+                    </a>
                 <?php else: ?>
-                    <a class="nav-link" href="register.php">Register</a>
-                    <a class="nav-link" href="login.php">Login</a>
+                    <a href="login.php" class="text-sm font-medium hover:text-primary transition">Login</a>
+                    <a href="register.php"
+                        class="bg-primary hover:bg-secondary text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 transition active:scale-95">
+                        Get Started
+                    </a>
                 <?php endif; ?>
+
+                <button id="darkModeToggle"
+                    class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i class="bi bi-moon-stars dark:hidden"></i>
+                    <i class="bi bi-sun hidden dark:block"></i>
+                </button>
             </div>
         </div>
     </nav>
-    <div class="container">
+    <main class="min-h-[calc(100vh-160px)]">
+        <div class="max-w-7xl mx-auto px-6 py-8">
