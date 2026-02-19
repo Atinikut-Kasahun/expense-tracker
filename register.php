@@ -5,21 +5,25 @@ $error = "";
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-
-    if (empty($name) || empty($email) || empty($password)) {
-        $error = "All fields are required.";
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        $error = "CSRF token mismatch.";
     } else {
-        $passHash = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)";
-        $result = pg_query_params($conn, $sql, array($name, $email, $passHash));
+        $name = trim($_POST['name']);
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
 
-        if ($result) {
-            $success = "Registration successful! You can now <a href='login.php' class='font-bold underline'>login</a>.";
+        if (empty($name) || empty($email) || empty($password)) {
+            $error = "All fields are required.";
         } else {
-            $error = "Registration failed. Email might already be taken.";
+            try {
+                $passHash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "INSERT INTO users (username, email, password_hash) VALUES (:name, :email, :pass)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['name' => $name, 'email' => $email, 'pass' => $passHash]);
+                $success = "Registration successful! You can now <a href='login.php' class='font-bold underline'>login</a>.";
+            } catch (PDOException $e) {
+                $error = "Registration failed. Email might already be taken.";
+            }
         }
     }
 }
