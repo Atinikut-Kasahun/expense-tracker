@@ -33,13 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $sql = "INSERT INTO expenses (user_id, title, amount, type, category, date) VALUES ($1, $2, $3, $4, $5, $6)";
-        $result = pg_query_params($conn, $sql, array($user_id, $title, $amount, $type, $category, $date));
+        $sql = "INSERT INTO expenses (user_id, title, amount, type, category, date) VALUES (:user_id, :title, :amount, :type, :category, :date)";
+        $stmt = $pdo->prepare($sql);
+        $result = $stmt->execute([
+            'user_id' => $user_id,
+            'title' => $title,
+            'amount' => $amount,
+            'type' => $type,
+            'category' => $category,
+            'date' => $date
+        ]);
 
         if ($result) {
             echo json_encode(['success' => true]);
         } else {
-            throw new Exception(pg_last_error($conn));
+            throw new Exception("Execution failed");
         }
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
