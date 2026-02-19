@@ -9,27 +9,32 @@ if (isset($_SESSION['user_id'])) {
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-
-    if (empty($email) || empty($password)) {
-        $error = "Please enter both email and password.";
+    if (!validate_csrf_token($_POST['csrf_token'] ?? '')) {
+        $error = "CSRF token mismatch.";
     } else {
-        $sql = "SELECT id, username, password_hash FROM users WHERE email = $1";
-        $result = pg_query_params($conn, $sql, array($email));
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
 
-        if ($result && pg_num_rows($result) > 0) {
-            $user = pg_fetch_assoc($result);
-            if (password_verify($password, $user['password_hash'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                header("Location: dashboard.php");
-                exit;
-            } else {
-                $error = "Invalid email or password.";
-            }
+        if (empty($email) || empty($password)) {
+            $error = "Please enter both email and password.";
         } else {
-            $error = "Invalid email or password.";
+            try {
+                $sql = "SELECT id, username, password_hash FROM users WHERE email = :email";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['email' => $email]);
+                $user = $stmt->fetch();
+
+                if ($user && password_verify($password, $user['password_hash'])) {
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    header("Location: dashboard.php");
+                    exit;
+                } else {
+                    $error = "Invalid email or password.";
+                }
+            } catch (Exception $e) {
+                $error = "Login failed. Please try again later.";
+            }
         }
     }
 }
