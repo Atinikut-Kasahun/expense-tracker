@@ -32,20 +32,65 @@
         }
     </script>
     <style>
+        :root {
+            --bg-gradient: linear-gradient(-45deg, #4361ee, #3a0ca3, #7209b7, #4cc9f0);
+        }
+
+        @keyframes gradient-bg {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .animated-bg {
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradient-bg 15s ease infinite;
+        }
+
         .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .dark .glass {
-            background: rgba(15, 23, 42, 0.7);
-            border-color: rgba(51, 65, 85, 0.8);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
     </style>
+    <script>
+        // Theme Persistence
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
+<body
+    class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300 animated-bg">
     <nav class="sticky top-0 z-50 w-full glass border-b border-slate-200 dark:border-slate-800 px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <a href="index.php" class="flex items-center gap-2 group">
@@ -57,6 +102,7 @@
 
             <div class="flex items-center gap-6">
                 <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="analytics.php" class="text-sm font-medium hover:text-primary transition">Analytics</a>
                     <a href="dashboard.php" class="text-sm font-medium hover:text-primary transition">Dashboard</a>
                     <a href="logout.php"
                         class="bg-slate-100 hover:bg-rose-50 hover:text-rose-600 dark:bg-slate-800 dark:hover:bg-rose-900/30 px-4 py-2 rounded-full text-sm font-semibold transition">
@@ -75,6 +121,14 @@
                     <i class="bi bi-moon-stars dark:hidden"></i>
                     <i class="bi bi-sun hidden dark:block"></i>
                 </button>
+
+                <script>
+                    const toggle = document.getElementById('darkModeToggle');
+                    toggle.addEventListener('click', () => {
+                        const isDark = document.documentElement.classList.toggle('dark');
+                        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                    });
+                </script>
             </div>
         </div>
     </nav>
