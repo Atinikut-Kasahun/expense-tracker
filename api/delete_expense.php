@@ -21,17 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $sql = "DELETE FROM expenses WHERE id = $1 AND user_id = $2";
-    $result = pg_query_params($conn, $sql, array($id, $user_id));
+    try {
+        $sql = "DELETE FROM expenses WHERE id = :id AND user_id = :user_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id' => $id, 'user_id' => $user_id]);
 
-    if ($result) {
-        if (pg_affected_rows($result) > 0) {
+        if ($stmt->rowCount() > 0) {
             echo json_encode(['success' => true]);
         } else {
             echo json_encode(['error' => 'Expense not found or unauthorized.']);
         }
-    } else {
-        echo json_encode(['error' => 'Failed to delete expense: ' . pg_last_error($conn)]);
+    } catch (Exception $e) {
+        echo json_encode(['error' => 'Failed to delete expense: ' . $e->getMessage()]);
     }
 } else {
     echo json_encode(['error' => 'Invalid request method.']);
