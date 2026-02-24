@@ -1,5 +1,5 @@
 <?php
-include '../db/config.php';
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 header('Content-Type: application/json');
 
