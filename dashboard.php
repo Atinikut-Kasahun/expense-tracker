@@ -1,5 +1,5 @@
 <?php
-include "db/config.php";
+require_once __DIR__ . '/includes/bootstrap.php';
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
@@ -12,158 +12,204 @@ process_recurring($_SESSION['user_id'], $pdo);
 include "partials/header.php";
 ?>
 
-<div class="space-y-8">
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div
-            class="stat-card glass p-8 rounded-[2rem] border-l-4 border-indigo-500 shadow-sm hover:shadow-xl transition-all duration-300">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Net Balance</p>
-                    <h2 class="text-3xl font-extrabold text-slate-900 dark:text-white" id="currentBalance">$0.00</h2>
-                </div>
-                <div class="bg-indigo-50 dark:bg-indigo-900/30 p-3 rounded-2xl text-indigo-600 dark:text-indigo-400">
-                    <i class="bi bi-wallet2 text-xl"></i>
-                </div>
+<div class="space-y-10">
+    <!-- Premium SaaS Dashboard Header -->
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span
+                    class="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">Active
+                    Workspace</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                    <i class="bi bi-clock-history"></i> Last synced: <span id="lastSyncTime">Just now</span>
+                </span>
             </div>
+            <h1 class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Financial Overview</h1>
+            <p class="text-slate-500 dark:text-slate-400">Welcome back, manager. Here's your real-time cash flow status.
+            </p>
         </div>
-        <div
-            class="stat-card glass p-8 rounded-[2rem] border-l-4 border-emerald-500 shadow-sm hover:shadow-xl transition-all duration-300">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Income</p>
-                    <h2 class="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400" id="totalIncome">$0.00
-                    </h2>
-                </div>
-                <div
-                    class="bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-2xl text-emerald-600 dark:text-emerald-400">
-                    <i class="bi bi-graph-up-arrow text-xl"></i>
-                </div>
+        <div class="flex gap-3">
+            <button onclick="toggleModal('setBudgetModal')"
+                class="glass px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-white/10 transition">
+                <i class="bi bi-gear-wide-connected"></i> Configure
+            </button>
+            <button onclick="toggleModal('addExpenseModal')"
+                class="bg-primary hover:bg-secondary text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2 text-sm">
+                <i class="bi bi-plus-lg"></i> New Transaction
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Hierarchy: Net Balance Hero -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 relative group">
+            <div
+                class="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000">
             </div>
-        </div>
-        <div
-            class="stat-card glass p-8 rounded-[2rem] border-l-4 border-rose-500 shadow-sm hover:shadow-xl transition-all duration-300">
-            <div class="flex justify-between items-start">
-                <div>
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Expenses</p>
-                    <h2 class="text-3xl font-extrabold text-rose-600 dark:text-rose-400" id="totalExpense">$0.00</h2>
-                </div>
-                <div class="bg-rose-50 dark:bg-rose-900/30 p-3 rounded-2xl text-rose-600 dark:text-rose-400">
-                    <i class="bi bi-graph-down-arrow text-xl"></i>
-                </div>
-            </div>
-        </div>
-        <div class="stat-card glass p-8 rounded-[2rem] border-l-4 border-purple-500 shadow-sm hover:shadow-xl transition-all duration-300 relative group cursor-pointer"
-            onclick="toggleModal('setBudgetModal')">
-            <div class="flex justify-between items-start w-full">
-                <div class="w-full">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Budget</p>
-                    <div class="flex items-baseline justify-between mb-2">
-                        <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white" id="budgetAmount">$0.00</h2>
-                        <span class="text-[10px] font-bold text-slate-400" id="budgetPercent">0%</span>
+            <div
+                class="relative glass p-10 rounded-[2.5rem] border border-white/20 shadow-2xl overflow-hidden min-h-[280px] flex flex-col justify-center">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Net Balance
+                        </p>
+                        <h2 class="text-6xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tighter"
+                            id="currentBalance">$0.00</h2>
                     </div>
-                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div id="budgetProgress" class="bg-purple-500 h-full transition-all duration-1000"
-                            style="width: 0%"></div>
+                    <div class="bg-indigo-500/10 p-4 rounded-3xl text-primary border border-primary/10">
+                        <i class="bi bi-wallet2 text-3xl"></i>
                     </div>
                 </div>
+                <div class="flex items-center gap-4 mt-6">
+                    <div
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                        <i class="bi bi-arrow-up-right"></i> +12.5% <span
+                            class="text-[10px] opacity-60 font-medium font-sans">vs last month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+            <div class="glass p-6 rounded-3xl border-l-4 border-emerald-500 shadow-sm relative overflow-hidden group">
+                <div class="flex justify-between items-center relative z-10">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Income</p>
+                        <h3 class="text-2xl font-black text-emerald-600 dark:text-emerald-400" id="totalIncome">$0.00
+                        </h3>
+                    </div>
+                    <div class="bg-emerald-500/10 p-2.5 rounded-2xl text-emerald-600">
+                        <i class="bi bi-graph-up-arrow text-lg"></i>
+                    </div>
+                </div>
                 <div
-                    class="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-2xl text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition absolute right-4 top-4">
-                    <i class="bi bi-pencil-square text-lg"></i>
+                    class="absolute right-0 bottom-0 opacity-[0.03] scale-150 rotate-12 transition group-hover:scale-[1.7] duration-700">
+                    <i class="bi bi-graph-up-arrow text-8xl text-emerald-600"></i>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl border-l-4 border-rose-500 shadow-sm relative overflow-hidden group">
+                <div class="flex justify-between items-center relative z-10">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Expenses
+                        </p>
+                        <h3 class="text-2xl font-black text-rose-600 dark:text-rose-400" id="totalExpense">$0.00</h3>
+                    </div>
+                    <div class="bg-rose-500/10 p-2.5 rounded-2xl text-rose-600">
+                        <i class="bi bi-graph-down-arrow text-lg"></i>
+                    </div>
+                </div>
+                <div
+                    class="absolute right-0 bottom-0 opacity-[0.03] scale-150 -rotate-12 transition group-hover:scale-[1.7] duration-700">
+                    <i class="bi bi-graph-down-arrow text-8xl text-rose-600"></i>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl border-l-4 border-purple-500 shadow-sm transition-all group cursor-pointer"
+                onclick="toggleModal('setBudgetModal')">
+                <div class="flex justify-between items-center mb-3">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monthly Budget</p>
+                    <span class="text-[10px] font-black text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded"
+                        id="budgetPercent">0%</span>
+                </div>
+                <div class="flex items-baseline justify-between mb-3">
+                    <h3 class="text-2xl font-black text-slate-900 dark:text-white" id="budgetAmount">$0.00</h3>
+                </div>
+                <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="budgetProgress" class="bg-purple-500 h-full transition-all duration-1000"
+                        style="width: 0%"></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <section class="grid grid-cols-1 gap-8">
+        <!-- Cash Flow Trend -->
         <div class="glass p-8 rounded-[2.5rem] shadow-sm">
-            <h3 class="font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                <i class="bi bi-pie-chart-fill text-indigo-500"></i> Expenses by Category
+            <h3 class="font-bold text-slate-800 dark:text-white mb-6 flex items-center justify-between">
+                <span class="flex items-center gap-2"><i class="bi bi-activity text-indigo-500"></i> Cash Flow Trend</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Analytics</span>
             </h3>
-            <div class="h-[300px] flex justify-center">
-                <canvas id="categoryChart"></canvas>
-            </div>
-        </div>
-        <div class="glass p-8 rounded-[2.5rem] shadow-sm">
-            <h3 class="font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                <i class="bi bi-activity text-indigo-500"></i> Cash Flow Trend
-            </h3>
-            <div class="h-[300px]">
+            <div class="h-[350px]">
                 <canvas id="trendChart"></canvas>
             </div>
         </div>
-    </section>
 
-    <section class="glass rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div
-            class="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h3 class="text-xl font-bold text-slate-900 dark:text-white">Transaction History</h3>
-                <p class="text-sm text-slate-500">Manage your recent income and expenses</p>
+        <!-- Transactions Section -->
+        <div class="glass rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div class="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white">Transaction History</h3>
+                    <p class="text-sm text-slate-500">Precision tracking for your financial footprint</p>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="exportToCSV()" class="glass px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/10 transition active:scale-95 text-sm">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                    <button onclick="toggleModal('addExpenseModal')" class="bg-primary hover:bg-secondary text-white px-8 py-3 rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2 text-sm">
+                        <i class="bi bi-plus-lg"></i> Add New
+                    </button>
+                </div>
             </div>
-            <div class="flex gap-4">
-                <button onclick="exportToCSV()"
-                    class="glass px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/10 transition active:scale-95">
-                    <i class="bi bi-download"></i> Export
-                </button>
-                <button onclick="toggleModal('addExpenseModal')"
-                    class="bg-primary hover:bg-secondary text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2">
-                    <i class="bi bi-plus-lg"></i> Add New
-                </button>
+
+            <div class="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/10 flex flex-wrap gap-4">
+                <div class="flex-1 min-w-[200px] relative">
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search transactions..." class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none transition text-sm">
+                </div>
+                <select id="typeFilter" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none text-sm cursor-pointer dark:text-white">
+                    <option value="">All Types</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+                <input type="text" id="categoryFilter" placeholder="Category" class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none text-sm w-32 dark:text-white">
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50/50 dark:bg-slate-800/30">
+                        <tr>
+                            <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
+                            <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Description</th>
+                            <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Category</th>
+                            <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Amount</th>
+                            <th class="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody" class="divide-y divide-slate-50 dark:divide-slate-800">
+                        <!-- Content via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/30 dark:bg-slate-800/10">
+                <p class="text-xs font-medium text-slate-500" id="paginationInfo">Showing 0 of 0</p>
+                <div class="flex gap-2">
+                    <button id="prevPage" class="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button id="nextPage" class="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div
-            class="px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/10 flex flex-wrap gap-4">
-            <div class="flex-1 min-w-[200px] relative">
-                <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input type="text" id="searchInput" placeholder="Search transactions..."
-                    class="w-full pl-11 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none transition text-sm">
-            </div>
-            <select id="typeFilter"
-                class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none text-sm cursor-pointer">
-                <option value="">All Types</option>
-                <option value="income">Income</option>
-                <option value="expense">Expense</option>
-            </select>
-            <input type="text" id="categoryFilter" placeholder="Category"
-                class="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-primary outline-none text-sm w-32">
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-slate-50/50 dark:bg-slate-800/30">
-                    <tr>
-                        <th class="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Date</th>
-                        <th class="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                            Description</th>
-                        <th class="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Category
-                        </th>
-                        <th
-                            class="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">
-                            Amount</th>
-                        <th
-                            class="px-8 py-5 text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">
-                            Action</th>
-                    </tr>
-                </thead>
-                <tbody id="expenseTableBody" class="divide-y divide-slate-50 dark:divide-slate-800">
-                    <!-- Skeletons will show here -->
-                </tbody>
-            </table>
-        </div>
-
-        <div
-            class="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/30 dark:bg-slate-800/10">
-            <p class="text-xs font-medium text-slate-500" id="paginationInfo">Showing 0 of 0</p>
-            <div class="flex gap-2">
-                <button id="prevPage"
-                    class="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition disabled:opacity-30 disabled:cursor-not-allowed">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                <button id="nextPage"
-                    class="p-2 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900 transition disabled:opacity-30 disabled:cursor-not-allowed">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
+        <!-- Category Breakdown -->
+        <div class="glass p-10 rounded-[2.5rem] shadow-sm">
+            <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-10 flex items-center gap-2">
+                <i class="bi bi-pie-chart-fill text-indigo-500"></i> Allocation Analysis
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="h-[300px] flex justify-center relative">
+                    <canvas id="categoryChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span class="text-[10px] font-black text-slate-400 uppercase">Total Focus</span>
+                        <span class="text-2xl font-black text-slate-900 dark:text-white" id="totalFocusAmount">$0</span>
+                    </div>
+                </div>
+                <div id="categoryLegend" class="space-y-4">
+                    <!-- Dynamic legend -->
+                </div>
             </div>
         </div>
     </section>
@@ -290,13 +336,16 @@ include "partials/header.php";
 
     function showSkeletons() {
         const tbody = document.getElementById('expenseTableBody');
-        tbody.innerHTML = Array(3).fill(0).map(() => `
+        tbody.innerHTML = Array(5).fill(0).map(() => `
             <tr class="animate-pulse">
-                <td class="px-8 py-6"><div class="h-4 bg-slate-100 dark:bg-slate-800 rounded w-24"></div></td>
-                <td class="px-8 py-6"><div class="h-4 bg-slate-100 dark:bg-slate-800 rounded w-48"></div></td>
+                <td class="px-8 py-6"><div class="h-3 bg-slate-100 dark:bg-slate-800 rounded w-20"></div></td>
+                <td class="px-8 py-6">
+                    <div class="h-4 bg-slate-100 dark:bg-slate-800 rounded w-40 mb-2"></div>
+                    <div class="h-2 bg-slate-50 dark:bg-slate-800/50 rounded w-24"></div>
+                </td>
                 <td class="px-8 py-6"><div class="h-6 bg-slate-100 dark:bg-slate-800 rounded-full w-20"></div></td>
                 <td class="px-8 py-6 text-right"><div class="h-4 bg-slate-100 dark:bg-slate-800 rounded w-16 ml-auto"></div></td>
-                <td class="px-8 py-6 text-center"><div class="h-8 bg-slate-100 dark:bg-slate-800 rounded-lg w-8 mx-auto"></div></td>
+                <td class="px-8 py-6 text-center"><div class="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl w-10 mx-auto"></div></td>
             </tr>
         `).join('');
     }
@@ -324,8 +373,24 @@ include "partials/header.php";
             document.getElementById('prevPage').disabled = currentPage <= 1;
             document.getElementById('nextPage').disabled = currentPage >= totalPages;
 
+            document.getElementById('lastSyncTime').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
             if (data.expenses.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-20 text-center"><div class="text-slate-400 space-y-3"><i class="bi bi-inbox text-5xl opacity-20"></i><p>No transactions found.</p></div></td></tr>`;
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-24 text-center">
+                            <div class="max-w-xs mx-auto">
+                                <div class="bg-indigo-50 dark:bg-indigo-900/20 w-20 h-20 rounded-3xl flex items-center justify-center text-indigo-500 mx-auto mb-6">
+                                    <i class="bi bi-plus-square-dotted text-4xl"></i>
+                                </div>
+                                <h4 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No Transactions Yet</h4>
+                                <p class="text-sm text-slate-500 mb-8 leading-relaxed">Your financial journey starts here. Add your first income or expense to see insights.</p>
+                                <button onclick="toggleModal('addExpenseModal')" class="bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-indigo-200 dark:shadow-none hover:bg-secondary transition-all">
+                                    Log First Transaction
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
             } else {
                 tbody.innerHTML = data.expenses.map(item => `
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition group">
@@ -486,31 +551,51 @@ include "partials/header.php";
     function renderCharts(data) {
         const isDark = document.documentElement.classList.contains('dark');
         const textColor = isDark ? '#94a3b8' : '#64748b';
+        const colors = ['#4361ee', '#10b981', '#f59e0b', '#ef4444', '#7209b7', '#4cc9f0'];
 
         const cats = {};
-        data.expenses.filter(e => e.type === 'expense').forEach(e => {
-            cats[e.category] = (cats[e.category] || 0) + parseFloat(e.amount);
+        const expensesOnly = data.expenses.filter(e => e.type === 'expense');
+        expensesOnly.forEach(e => {
+            cats[e.category] = (cats[e.category] || 0) + Math.abs(parseFloat(e.amount));
         });
+
+        const catEntries = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+        const totalExp = expensesOnly.reduce((acc, curr) => acc + Math.abs(parseFloat(curr.amount)), 0);
+        document.getElementById('totalFocusAmount').innerText = '$' + totalExp.toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+        // Update Custom Legend
+        const legend = document.getElementById('categoryLegend');
+        if (catEntries.length === 0) {
+            legend.innerHTML = `<p class="text-sm text-slate-400 italic">Add expenses to see breakdown</p>`;
+        } else {
+            legend.innerHTML = catEntries.slice(0, 4).map(([cat, val], i) => `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background: ${colors[i % colors.length]}"></div>
+                        <span class="text-xs font-bold text-slate-600 dark:text-slate-400 capitalize">${cat || 'General'}</span>
+                    </div>
+                    <span class="text-xs font-black text-slate-900 dark:text-white">${Math.round((val / totalExp) * 100)}%</span>
+                </div>
+            `).join('');
+        }
 
         const ctxPie = document.getElementById('categoryChart').getContext('2d');
         if (categoryChart) categoryChart.destroy();
         categoryChart = new Chart(ctxPie, {
             type: 'doughnut',
             data: {
-                labels: Object.keys(cats),
+                labels: catEntries.map(c => c[0]),
                 datasets: [{
-                    data: Object.values(cats),
-                    backgroundColor: ['#4361ee', '#10b981', '#f59e0b', '#ef4444', '#64748b'],
+                    data: catEntries.map(c => c[1]),
+                    backgroundColor: colors,
                     borderWidth: 0,
-                    hoverOffset: 20
+                    hoverOffset: 15
                 }]
             },
             options: {
-                cutout: '80%',
+                cutout: '85%',
                 radius: '90%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: textColor, font: { weight: 'bold', size: 11 } } }
-                }
+                plugins: { legend: { display: false } }
             }
         });
 
@@ -519,18 +604,24 @@ include "partials/header.php";
         trendChart = new Chart(ctxTrend, {
             type: 'line',
             data: {
-                labels: data.expenses.slice(0, 10).reverse().map(e => e.date),
+                labels: data.expenses.slice(0, 15).reverse().map(e => {
+                    const d = new Date(e.date);
+                    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                }),
                 datasets: [{
-                    data: data.expenses.slice(0, 10).reverse().map(e => e.amount),
+                    label: 'Transaction Flow',
+                    data: data.expenses.slice(0, 15).reverse().map(e => e.type === 'income' ? parseFloat(e.amount) : -parseFloat(e.amount)),
                     borderColor: '#4361ee',
-                    borderWidth: 4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4361ee',
+                    pointBorderColor: isDark ? '#0f172a' : '#ffffff',
+                    pointBorderWidth: 2,
                     tension: 0.4,
                     fill: true,
                     backgroundColor: (ctx) => {
-                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 300);
-                        gradient.addColorStop(0, 'rgba(67, 97, 238, 0.2)');
+                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                        gradient.addColorStop(0, 'rgba(67, 97, 238, 0.15)');
                         gradient.addColorStop(1, 'rgba(67, 97, 238, 0)');
                         return gradient;
                     }
@@ -539,10 +630,27 @@ include "partials/header.php";
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                         backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                         titleColor: isDark ? '#f1f5f9' : '#0f172a',
+                         bodyColor: isDark ? '#94a3b8' : '#64748b',
+                         borderColor: isDark ? '#334155' : '#e2e8f0',
+                         borderWidth: 1,
+                         padding: 12,
+                         displayColors: false,
+                         callbacks: {
+                             label: (ctx) => '$' + ctx.parsed.y.toLocaleString()
+                         }
+                    }
+                },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: textColor } },
-                    y: { grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }, ticks: { color: textColor } }
+                    x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
+                    y: { 
+                        grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', drawBorder: false }, 
+                        ticks: { color: textColor, font: { size: 10 }, callback: (v) => '$' + v } 
+                    }
                 }
             }
         });
