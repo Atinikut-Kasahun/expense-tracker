@@ -1,8 +1,5 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-
-include '../db/config.php';
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 header('Content-Type: application/json');
 
