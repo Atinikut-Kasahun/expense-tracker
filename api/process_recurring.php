@@ -1,5 +1,5 @@
 <?php
-include '../db/config.php';
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 function process_recurring($user_id, $pdo)
 {
